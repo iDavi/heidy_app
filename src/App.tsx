@@ -1,10 +1,12 @@
 import {
+  ArrowRight,
   BookOpen,
   CalendarDays,
   Check,
   ChevronDown,
   Circle,
   Clock3,
+  GraduationCap,
   Loader2,
   LogOut,
   Plus,
@@ -22,9 +24,12 @@ import {
   createSemester,
   createTask,
   getLoginKey,
+  getMoodleActivity,
+  getMoodleCourse,
   getMe,
   getSchedule,
   listEnrollments,
+  listMoodleCourses,
   listSemesters,
   listSyncRuns,
   listTasks,
@@ -35,7 +40,20 @@ import {
   updateSemester,
   updateTaskStatus
 } from "./api/client";
-import type { CredentialBlob, Enrollment, Schedule, Semester, SyncRun, Task, TaskPriority, TaskStatus, User } from "./api/types";
+import type {
+  CredentialBlob,
+  Enrollment,
+  MoodleActivityDetail,
+  MoodleCourse,
+  MoodleCourseDetail,
+  Schedule,
+  Semester,
+  SyncRun,
+  Task,
+  TaskPriority,
+  TaskStatus,
+  User
+} from "./api/types";
 import { useLocalSession } from "./hooks/useLocalSession";
 import { sealPassword } from "./lib/loginEnvelope";
 
@@ -44,6 +62,7 @@ const navItems = [
   { id: "tasks", label: "Tasks", icon: Check },
   { id: "schedule", label: "Schedule", icon: CalendarDays },
   { id: "classes", label: "Classes", icon: BookOpen },
+  { id: "moodle", label: "Moodle", icon: GraduationCap },
   { id: "sync", label: "Sync", icon: RefreshCw },
   { id: "settings", label: "Settings", icon: Settings }
 ] as const;
@@ -71,6 +90,9 @@ type WorkspaceState = {
   tasks: Task[];
   schedule?: Schedule;
   syncRuns: SyncRun[];
+  moodleCourses: MoodleCourse[];
+  moodleCourse?: MoodleCourseDetail;
+  moodleActivity?: MoodleActivityDetail;
 };
 
 function App() {
@@ -163,11 +185,14 @@ function Workspace({
     semesters: [],
     enrollments: [],
     tasks: [],
-    syncRuns: []
+    syncRuns: [],
+    moodleCourses: []
   });
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [moodleLoading, setMoodleLoading] = useState(false);
+  const [moodleRequested, setMoodleRequested] = useState(false);
 
   const token = session.token;
 
@@ -189,14 +214,15 @@ function Workspace({
       ]);
 
       setSelectedSemesterId(nextSemesterId);
-      setState({
+      setState((current) => ({
+        ...current,
         user,
         semesters: semestersPage.data,
         enrollments: enrollmentsPage.data,
         tasks: tasksPage.data,
         schedule,
         syncRuns: syncPage.data
-      });
+      }));
       onUserChange(user);
     },
     [onUserChange, selectedSemesterId, token]
@@ -229,6 +255,52 @@ function Workspace({
       setError(errorMessage(cause));
     }
   }
+
+  const loadMoodleCourses = useCallback(async () => {
+    if (!session.credentialBlob) throw new Error("Sign in again to access Moodle.");
+
+    setMoodleRequested(true);
+    setMoodleLoading(true);
+
+    try {
+      const moodleCourses = await listMoodleCourses(token, session.credentialBlob);
+      setState((current) => ({ ...current, moodleCourses, moodleCourse: undefined, moodleActivity: undefined }));
+    } finally {
+      setMoodleLoading(false);
+    }
+  }, [session.credentialBlob, token]);
+
+  async function loadMoodleCourse(course: MoodleCourse) {
+    if (!session.credentialBlob) throw new Error("Sign in again to access Moodle.");
+
+    setMoodleLoading(true);
+
+    try {
+      const moodleCourse = await getMoodleCourse(token, session.credentialBlob, course.id);
+      setState((current) => ({ ...current, moodleCourse, moodleActivity: undefined }));
+    } finally {
+      setMoodleLoading(false);
+    }
+  }
+
+  async function loadMoodleActivity(url: string) {
+    if (!session.credentialBlob) throw new Error("Sign in again to access Moodle.");
+
+    setMoodleLoading(true);
+
+    try {
+      const moodleActivity = await getMoodleActivity(token, session.credentialBlob, url);
+      setState((current) => ({ ...current, moodleActivity }));
+    } finally {
+      setMoodleLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (page === "moodle" && !moodleRequested && !moodleLoading) {
+      loadMoodleCourses().catch((cause) => setError(errorMessage(cause)));
+    }
+  }, [loadMoodleCourses, moodleLoading, moodleRequested, page]);
 
   return (
     <div className="app-shell">
@@ -384,6 +456,17 @@ function Workspace({
                     await refresh();
                   }, "Meeting added")
                 }
+              />
+            ) : null}
+            {page === "moodle" ? (
+              <MoodlePage
+                courses={state.moodleCourses}
+                course={state.moodleCourse}
+                activity={state.moodleActivity}
+                loading={moodleLoading}
+                onRefresh={() => runAction(loadMoodleCourses)}
+                onCourse={(course) => runAction(() => loadMoodleCourse(course))}
+                onActivity={(url) => runAction(() => loadMoodleActivity(url))}
               />
             ) : null}
             {page === "sync" ? (
@@ -790,6 +873,104 @@ function ClassesPage({
         </div>
       </section>
     </>
+  );
+}
+
+function MoodlePage({
+  courses,
+  course,
+  activity,
+  loading,
+  onRefresh,
+  onCourse,
+  onActivity
+}: {
+  courses: MoodleCourse[];
+  course?: MoodleCourseDetail;
+  activity?: MoodleActivityDetail;
+  loading: boolean;
+  onRefresh: () => void;
+  onCourse: (course: MoodleCourse) => void;
+  onActivity: (url: string) => void;
+}) {
+  return (
+    <>
+      <section className="section-block">
+        <div className="section-title with-action">
+          <GraduationCap size={16} />
+          <h2>Courses</h2>
+          <span>{courses.length}</span>
+          <button className="icon-button" title="Refresh courses" type="button" onClick={onRefresh} disabled={loading}>
+            <RefreshCw className={loading ? "spin" : undefined} size={16} />
+          </button>
+        </div>
+        <div className="data-table">
+          <div className="table-head moodle-courses">
+            <span>Course</span>
+            <span />
+          </div>
+          {courses.map((item) => (
+            <div className="table-row moodle-courses" key={item.id}>
+              <span>{item.title}</span>
+              <button className="icon-button" title={`Open ${item.title}`} type="button" onClick={() => onCourse(item)} disabled={loading}>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          ))}
+          {!loading && courses.length === 0 ? <div className="empty-table">No courses</div> : null}
+        </div>
+      </section>
+
+      {course ? (
+        <section className="section-block">
+          <SectionTitle icon={BookOpen} title={course.title} count={course.activities.length} />
+          <div className="data-table">
+            <div className="table-head moodle-activities">
+              <span>Item</span>
+              <span>Type</span>
+              <span />
+            </div>
+            {course.activities.map((item) => (
+              <div className="table-row moodle-activities" key={item.id}>
+                <span>{item.title}</span>
+                <span>{item.kind}</span>
+                <button className="icon-button" title={`Read ${item.title}`} type="button" onClick={() => onActivity(item.url)} disabled={loading}>
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            ))}
+            {course.activities.length === 0 ? <div className="empty-table">No items</div> : null}
+          </div>
+        </section>
+      ) : null}
+
+      {activity ? (
+        <section className="section-block">
+          <SectionTitle icon={BookOpen} title={activity.title} />
+          {activity.file ? <MoodleFile file={activity.file} /> : <div className="moodle-content">{activity.content || "No readable text"}</div>}
+        </section>
+      ) : null}
+    </>
+  );
+}
+
+function MoodleFile({ file }: { file: NonNullable<MoodleActivityDetail["file"]> }) {
+  const source = `data:${file.mime};base64,${file.data}`;
+
+  if (file.mime.startsWith("image/")) {
+    return <img className="moodle-file image" src={source} alt={file.name} />;
+  }
+
+  if (file.mime.includes("pdf")) {
+    return <iframe className="moodle-file pdf" title={file.name} src={source} />;
+  }
+
+  return (
+    <div className="moodle-content">
+      <a href={source} download={file.name}>
+        {file.name}
+      </a>
+    </div>
   );
 }
 

@@ -389,6 +389,10 @@ label {
   font-size: 12px;
 }
 
+.section-title.with-action .icon-button {
+  margin-left: auto;
+}
+
 .data-table {
   width: 100%;
   overflow-x: auto;
@@ -456,6 +460,14 @@ label {
   grid-template-columns: 120px minmax(160px, 1fr) 180px 180px;
 }
 
+.moodle-courses {
+  grid-template-columns: minmax(260px, 1fr) 38px;
+}
+
+.moodle-activities {
+  grid-template-columns: minmax(260px, 1fr) 130px 38px;
+}
+
 .table-row.tasks:has(span:nth-child(3):last-child),
 .table-head.tasks:has(span:nth-child(3):last-child) {
   grid-template-columns: minmax(220px, 1fr) 150px 142px;
@@ -470,6 +482,30 @@ label {
 
 .empty-table {
   padding: 18px 14px;
+}
+
+.moodle-content {
+  min-height: 160px;
+  padding: 18px 16px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.moodle-file {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: white;
+}
+
+.moodle-file.pdf {
+  height: min(72vh, 860px);
+}
+
+.moodle-file.image {
+  max-height: min(72vh, 860px);
+  object-fit: contain;
 }
 
 .inline-form {

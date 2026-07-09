@@ -117,3 +117,30 @@ export type SyncRun = {
   started_at: string;
   finished_at?: string | null;
 };
+
+export type MoodleCourse = {
+  id: number;
+  title: string;
+  url: string;
+};
+
+export type MoodleActivity = {
+  id: number;
+  title: string;
+  kind: string;
+  url: string;
+};
+
+export type MoodleCourseDetail = {
+  id: number;
+  title: string;
+  activities: MoodleActivity[];
+};
+
+export type MoodleActivityDetail = {
+  id: number;
+  title: string;
+  content: string;
+  links: { label: string; url: string }[];
+  file?: { name: string; mime: string; data: string } | null;
+};

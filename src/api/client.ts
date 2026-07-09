@@ -5,6 +5,9 @@ import type {
   Enrollment,
   LoginKey,
   Meeting,
+  MoodleActivityDetail,
+  MoodleCourse,
+  MoodleCourseDetail,
   Page,
   Schedule,
   Semester,
@@ -160,6 +163,27 @@ export async function getSchedule(token: string, semesterId: string) {
   return request<Data<Schedule>>("/api/v1/schedule", {
     token,
     query: { semester_id: semesterId }
+  }).then((response) => response.data);
+}
+
+export async function listMoodleCourses(token: string, credentialBlob: CredentialBlob) {
+  return request<Data<MoodleCourse[]>>("/api/v1/moodle/courses", {
+    token,
+    body: { credential_blob: credentialBlob.blob }
+  }).then((response) => response.data);
+}
+
+export async function getMoodleCourse(token: string, credentialBlob: CredentialBlob, courseId: number) {
+  return request<Data<MoodleCourseDetail>>(`/api/v1/moodle/courses/${courseId}`, {
+    token,
+    body: { credential_blob: credentialBlob.blob }
+  }).then((response) => response.data);
+}
+
+export async function getMoodleActivity(token: string, credentialBlob: CredentialBlob, url: string) {
+  return request<Data<MoodleActivityDetail>>("/api/v1/moodle/activity", {
+    token,
+    body: { credential_blob: credentialBlob.blob, url }
   }).then((response) => response.data);
 }
 
