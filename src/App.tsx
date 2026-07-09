@@ -911,7 +911,10 @@ function MoodlePage({
           </div>
           {courses.map((item) => (
             <div className="table-row moodle-courses" key={item.id}>
-              <span>{item.title}</span>
+              <span className="course-name">
+                {item.code ? <small>{item.code}</small> : null}
+                <strong>{item.name || item.title}</strong>
+              </span>
               <button className="icon-button" title={`Open ${item.title}`} type="button" onClick={() => onCourse(item)} disabled={loading}>
                 <ArrowRight size={16} />
               </button>

@@ -120,6 +120,8 @@ export type SyncRun = {
 
 export type MoodleCourse = {
   id: number;
+  code?: string | null;
+  name?: string | null;
   title: string;
   url: string;
 };

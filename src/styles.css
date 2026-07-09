@@ -468,6 +468,25 @@ label {
   grid-template-columns: minmax(260px, 1fr) 130px 38px;
 }
 
+.course-name {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.course-name small {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.course-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
 .table-row.tasks:has(span:nth-child(3):last-child),
 .table-head.tasks:has(span:nth-child(3):last-child) {
   grid-template-columns: minmax(220px, 1fr) 150px 142px;
