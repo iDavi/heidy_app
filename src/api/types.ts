@@ -89,7 +89,8 @@ export type Task = {
   status: TaskStatus;
   priority: TaskPriority;
   due_at?: string | null;
-  source: "manual" | "usp";
+  source: "manual" | "usp" | "moodle";
+  external_ref?: string | null;
 };
 
 export type ScheduleSlot = {
@@ -108,7 +109,7 @@ export type Schedule = {
 
 export type SyncRun = {
   id: string;
-  status: "queued" | "running" | "succeeded" | "failed";
+  status: "pending" | "queued" | "running" | "succeeded" | "failed";
   sources: string[];
   semester_id?: string | null;
   counts?: Record<string, number> | null;

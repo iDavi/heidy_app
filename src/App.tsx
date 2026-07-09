@@ -797,7 +797,7 @@ function SyncPage({ runs, hasCredential, onSync }: { runs: SyncRun[]; hasCredent
   return (
     <>
       <section className="section-block">
-        <SectionTitle icon={RefreshCw} title="USP sync" />
+        <SectionTitle icon={RefreshCw} title="USP + Moodle" />
         <button className="primary-button narrow" type="button" onClick={onSync} disabled={!hasCredential}>
           <RefreshCw size={15} />
           Start sync
@@ -885,7 +885,10 @@ function TaskTable({
       </div>
       {tasks.map((task) => (
         <div className="table-row tasks" key={task.id}>
-          <span>{task.title}</span>
+          <span className="task-name">
+            <span>{task.title}</span>
+            {task.source === "moodle" ? <small>Moodle</small> : null}
+          </span>
           <span>{task.due_at ? formatDateTime(task.due_at) : "-"}</span>
           <span>
             <select value={task.status} onChange={(event) => onStatus(task, event.target.value as TaskStatus)}>

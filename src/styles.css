@@ -429,6 +429,21 @@ label {
   white-space: nowrap;
 }
 
+.table-row .task-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-name small {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #e8f0ff;
+  color: #274f86;
+  font-size: 11px;
+}
+
 .tasks {
   grid-template-columns: minmax(220px, 1fr) 150px 142px 170px;
 }
