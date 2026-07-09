@@ -123,6 +123,8 @@ export type MoodleCourse = {
   code?: string | null;
   name?: string | null;
   title: string;
+  summary?: string | null;
+  teachers?: string[];
   url: string;
 };
 

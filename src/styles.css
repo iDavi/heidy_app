@@ -470,21 +470,41 @@ label {
 
 .course-name {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+.course-heading {
+  display: flex;
   align-items: baseline;
   gap: 9px;
 }
 
-.course-name small {
+.course-heading small {
   flex: 0 0 auto;
   color: var(--muted);
   font-size: 12px;
 }
 
-.course-name strong {
+.course-heading strong,
+.course-summary {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.course-heading strong {
   font-weight: 500;
+}
+
+.course-name em,
+.course-summary {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
 }
 
 .table-row.tasks:has(span:nth-child(3):last-child),

@@ -912,8 +912,12 @@ function MoodlePage({
           {courses.map((item) => (
             <div className="table-row moodle-courses" key={item.id}>
               <span className="course-name">
-                {item.code ? <small>{item.code}</small> : null}
-                <strong>{item.name || item.title}</strong>
+                <span className="course-heading">
+                  {item.code ? <small>{item.code}</small> : null}
+                  <strong>{item.name || item.title}</strong>
+                </span>
+                {item.teachers?.length ? <em>{item.teachers.join(", ")}</em> : null}
+                {item.summary ? <span className="course-summary">{item.summary}</span> : null}
               </span>
               <button className="icon-button" title={`Open ${item.title}`} type="button" onClick={() => onCourse(item)} disabled={loading}>
                 <ArrowRight size={16} />
